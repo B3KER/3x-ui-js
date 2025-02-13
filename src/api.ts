@@ -141,9 +141,11 @@ export class Api {
         }
     }
 
-    private async post<T>(path: string, params?: unknown) {
-        const endpoint = urlJoin("/panel/api/inbounds", path);
-
+    private async post<T>(path: string, params?: unknown, isCustomUrl: boolean = false) {
+        let endpoint = urlJoin("/panel/api/inbounds", path);
+        if (isCustomUrl == true) {
+                endpoint = path;
+            }
         try {
             await this.login();
             this._logger.debug(`POST ${endpoint}`);
@@ -671,6 +673,25 @@ export class Api {
         } catch (err) {
             this._logger.error(err);
             return false;
+        } finally {
+            release();
+        }
+    }
+
+    async getServerStatus() {
+        if (this._cache.has('server:status')) {
+            this._logger.debug('Server status loaded from cache.');
+            return this._cache.get('server:status');
+        }
+        const release = await this._mutex.acquire();
+        try {
+            const status = await this.post('/server/status', {}, true);
+            this._cache.set('server:status', status);
+            this._logger.debug('Server status loaded from API.');
+            return status || [];
+        } catch (err) {
+            this._logger.error(err);
+            return [];
         } finally {
             release();
         }
