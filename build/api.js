@@ -64,6 +64,7 @@ export class Api {
         try {
             this._logger.debug("POST /login");
             const response = await this._axios.post("/login", cerdentials, {
+                timeout: 5000,
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
@@ -629,15 +630,15 @@ export class Api {
         }
     }
     async getServerStatus() {
-        if (this._cache.has('server:status')) {
-            this._logger.debug('Server status loaded from cache.');
-            return this._cache.get('server:status');
+        if (this._cache.has("server:status")) {
+            this._logger.debug("Server status loaded from cache.");
+            return this._cache.get("server:status");
         }
         const release = await this._mutex.acquire();
         try {
-            const status = await this.post('/server/status', {}, true);
-            this._cache.set('server:status', status);
-            this._logger.debug('Server status loaded from API.');
+            const status = await this.post("/server/status", {}, true);
+            this._cache.set("server:status", status);
+            this._logger.debug("Server status loaded from API.");
             return status || [];
         }
         catch (err) {
